@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>🌍 AI Tourist Attraction Recommender</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            background: url('download.jpg') no-repeat center center fixed;
+            background-size: cover;
+            padding: 40px;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        
+        body.dark-mode {
+            background: #121212;
+            color: #f5f5f5;
+        }
+        
+        h1 {
+            text-align: center;
+            color: white;
+            margin-bottom: 20px;
+        }
+        
+        .dark-mode h1 {
+            color: white;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        
+        .dark-mode .container {
+            background: #1e1e1e;
+            color: #f5f5f5;
+        }
+        
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        input[type="text"],
+        select {
+            padding: 12px;
+            font-size: 16px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+        }
+        
+        input[type="text"] {
+            flex: 2;
+        }
+        
+        select {
+            flex: 1;
+        }
+        
+        button {
+            padding: 12px 18px;
+            font-size: 16px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        
+        button:hover {
+            background-color: #2980b9;
+        }
+        
+        .cards {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            margin-top: 30px;
+        }
+        
+        .card {
+            background: #fefefe;
+            padding: 16px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeInUp 0.5s forwards;
+        }
+        
+        .dark-mode .card {
+            background: #2c2c2c;
+            color: #f5f5f5;
+        }
+        
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .card .content {
+            flex-grow: 1;
+        }
+        
+        .card h3 {
+            margin: 0 0 8px 0;
+            font-size: 18px;
+            color: #2c3e50;
+        }
+        
+        .dark-mode .card h3 {
+            color: #f5f5f5;
+        }
+        
+        .card p {
+            margin: 0 0 8px 0;
+            font-size: 15px;
+            color: #555;
+        }
+        
+        .dark-mode .card p {
+            color: #ccc;
+        }
+        
+        .map-button {
+            padding: 6px 12px;
+            font-size: 14px;
+            background-color: #2ecc71;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .map-button:hover {
+            background-color: #27ae60;
+        }
+        
+        .like-button {
+            padding: 6px 12px;
+            font-size: 14px;
+            background-color: #ff6b81;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin-left: 10px;
+        }
+        
+        .like-button:hover {
+            background-color: #e74c3c;
+        }
+        
+        .favorite-button {
+            padding: 6px 12px;
+            font-size: 14px;
+            background-color: #f39c12;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin-left: 10px;
+        }
+        
+        .favorite-button:hover {
+            background-color: #e67e22;
+        }
+        
+        .toggle-container {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 10px;
+        }
+        
+        .toggle-switch {
+            cursor: pointer;
+            font-size: 18px;
+        }
+        
+        .side-by-side {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+        }
+        
+        .side-by-side .column {
+            width: 48%;
+        }
+        
+        #mostLikedContainer,
+        #favoritesContainer {
+            padding: 20px;
+            background-color: #fefefe;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+        
+        .dark-mode #mostLikedContainer,
+        .dark-mode #favoritesContainer {
+            background: #2c2c2c;
+            color: #f5f5f5;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="toggle-container">
+        <span class="toggle-switch" onclick="toggleDarkMode()">🌃 Dark Mode</span>
+    </div>
+
+    <h1>Local Attraction Recommender</h1>
+    <div class="container">
+        <div class="input-group">
+            <input type="text" id="locationInput" placeholder="🏙️ Enter a location (e.g. Paris)">
+            <select id="categorySelect">
+                <option value="tourist attractions">🌟 All</option>
+                <option value="nature places">🌲 Nature</option>
+                <option value="historical sites">🏰 Historical</option>
+                <option value="museums">🎨 Museums</option>
+                <option value="nightlife spots">🌃 Nightlife</option>
+                <option value="hostels">🏨 Hostels</option>
+                <option value="restaurants">🍽️ Food</option>
+                <option value="shopping places">🛍️ Shopping</option>
+            </select>
+            <button onclick="fetchRecommendations()">✨ Get Attractions</button>
+        </div>
+
+        <div class="side-by-side">
+            <div class="column" id="mostLikedContainer">
+                <h2>❤️ Most Liked Attractions</h2>
+                <div id="mostLiked"></div>
+            </div>
+
+            <div class="column" id="favoritesContainer">
+                <h2>⭐ Your Favorite Attractions</h2>
+                <div id="favorites"></div>
+            </div>
+        </div>
+
+        <div id="result" class="cards"></div>
+    </div>
+
+    <script>
+        async function fetchRecommendations() {
+            const location = document.getElementById("locationInput").value.trim();
+            const category = document.getElementById("categorySelect").value;
+            const apiKey = "AIzaSyDipt4LPmN5DLFmXoavG7Gxd-DC76fvY34"; // Replace this with your actual API key
+
+            if (!location) {
+                alert("Please enter a location.");
+                return;
+            }
+
+            const resultDiv = document.getElementById("result");
+            resultDiv.innerHTML = "<p>🔄 Loading...</p>";
+
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+            try {
+                const response = await fetch(url, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        contents: [{
+                            parts: [{
+                                text: `Suggest top 10 ${category} near ${location} with short descriptions only. Return as numbered list.`
+                            }]
+                        }]
+                    })
+                });
+
+                const data = await response.json();
+
+                const text = (data && data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts && data.candidates[0].content.parts[0] && data.candidates[0].content.parts[0].text) || "No data received.";
+                const lines = text.split("\n").filter(line => line.trim());
+
+                resultDiv.innerHTML = "";
+
+                lines.forEach((line, index) => {
+                    const match = line.match(/^\d+\.\s*(.*?)(?:[:\-]\s*)(.*)$/);
+                    const title = match ? match[1].trim().replace(/^\*+/, '') : `Attraction ${index + 1}`;
+                    const desc = match ? match[2].trim().replace(/^\*+/, '') : line;
+
+                    const card = document.createElement("div");
+                    card.className = "card";
+                    const likeKey = `${title} (${location})`;
+                    const likeCount = parseInt(localStorage.getItem(likeKey)) || 0;
+
+                    card.innerHTML = `
+                        <div class="content">
+                            <h3>${index + 1}. 📍 ${title}</h3>
+                            <p>${desc}</p>
+                            <button class="map-button" onclick="openInMap('${title}, ${location}')">🗺️ Show on Map</button>
+                            <button class="like-button" onclick="likeAttraction(this, '${likeKey}')">❤️ Like <span class="like-count">${likeCount}</span></button>
+                            <button class="favorite-button" onclick="addToFavorites('${title}')">⭐ Add to Favorites</button>
+                        </div>
+                    `;
+                    resultDiv.appendChild(card);
+                });
+
+                updateMostLiked();
+
+            } catch (error) {
+                console.error("Error fetching recommendations:", error);
+                resultDiv.innerHTML = "<p>❌ Failed to load attractions. Please try again.</p>";
+            }
+        }
+
+        function likeAttraction(button, key) {
+            const countSpan = button.querySelector(".like-count");
+            let count = parseInt(countSpan.innerText) + 1;
+
+            localStorage.setItem(key, count);
+            countSpan.innerText = count;
+            button.disabled = true;
+            button.style.backgroundColor = "#e74c3c";
+
+            updateMostLiked();
+        }
+
+        function openInMap(query) {
+            const mapUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
+            window.open(mapUrl, "_blank");
+        }
+
+        function toggleDarkMode() {
+            document.body.classList.toggle("dark-mode");
+        }
+
+        function addToFavorites(title) {
+            let favorites = JSON.parse(localStorage.getItem("favorites")) || [];
+            if (!favorites.includes(title)) {
+                favorites.push(title);
+                localStorage.setItem("favorites", JSON.stringify(favorites));
+                updateFavorites();
+            }
+        }
+
+        function updateFavorites() {
+            const favorites = JSON.parse(localStorage.getItem("favorites")) || [];
+            const favoritesContainer = document.getElementById("favorites");
+            favoritesContainer.innerHTML = "";
+            favorites.forEach(favorite => {
+                const favoriteDiv = document.createElement("div");
+                favoriteDiv.innerHTML = `<p>${favorite} <button onclick="removeFromFavorites('${favorite}')">❌ Remove</button></p>`;
+                favoritesContainer.appendChild(favoriteDiv);
+            });
+        }
+
+        function removeFromFavorites(title) {
+            let favorites = JSON.parse(localStorage.getItem("favorites")) || [];
+            favorites = favorites.filter(fav => fav !== title);
+            localStorage.setItem("favorites", JSON.stringify(favorites));
+            updateFavorites();
+        }
+
+        function updateMostLiked() {
+            const likes = {};
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key.includes('(')) {
+                    likes[key] = parseInt(localStorage.getItem(key)) || 0;
+                }
+            }
+
+            const sorted = Object.entries(likes).sort((a, b) => b[1] - a[1]).slice(0, 5);
+            const container = document.getElementById("mostLiked");
+            container.innerHTML = "";
+            sorted.forEach(([key, count]) => {
+                container.innerHTML += `<p>${key} - ❤️ ${count}</p>`;
+            });
+        }
+
+        // Initial load
+        updateFavorites();
+        updateMostLiked();
+    </script>
+</body>
+
+</html>
